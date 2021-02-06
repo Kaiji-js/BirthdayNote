@@ -1,0 +1,8 @@
+.vs
+bin
+obj
+Rerease
+Properties
+appsettings.json
+appsettings.Development.json
+BirthdayBot.csproj.user
