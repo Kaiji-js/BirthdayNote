@@ -10,6 +10,8 @@ using System.Threading.Tasks;
 
 namespace BirthdayBot.Middleware
 {
+    // ユーザから送信されたテキストが正式にLINEプラットフォームから送信されたものか
+    // 判定するクラス(.Net Coreに適するよう修正した以外はサンプルそのまま)
     public class LineValidationMiddleware
     {
         private readonly RequestDelegate next;
