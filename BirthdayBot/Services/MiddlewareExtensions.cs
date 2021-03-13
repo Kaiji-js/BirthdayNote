@@ -2,6 +2,9 @@
 
 namespace BirthdayBot.Middleware
 {
+    /// <summary>
+    /// LINEバリデーションミドルウェアの実行クラス
+    /// </summary>
     public static class MiddlewareExtensions
     {
         public static IApplicationBuilder UseLineValidationMiddleware(this IApplicationBuilder app, string channelSecret)

@@ -6,26 +6,36 @@ using System.Threading.Tasks;
 
 namespace BirthdayBot.Services
 {
+    /// <summary>
+    /// CosmosDBサービスのCRUD処理
+    /// </summary>
     public class CosmosDbService : ICosmosDbService
     {
         private Container container;
 
-        // 本Botで使用するCosmosDBのコンテナを取得
+        /// <summary>
+        /// コンストラクタ
+        /// </summary>
         public CosmosDbService(CosmosClient cosmosClient, string databaseName, string contairName)
         {
+            // CosmosDBのコンテナを設定
             this.container = cosmosClient.GetContainer(databaseName, contairName);
         }
 
-        // データ追加
+        /// <summary>
+        /// データ追加
+        /// </summary>
         public async Task AddItemAsync(Item item)
         {
             await this.container.CreateItemAsync<Item>(item, new PartitionKey(item.Id));
         }
 
-        // データ削除
+        /// <summary>
+        /// データ削除
+        /// </summary>
         public async Task<bool> DeleteItemAsync(string queryString)
         {
-            var results = (List<Item>)GetItemsAsync(queryString).Result;
+            var results = (List<Item>)this.GetItemsAsync(queryString).Result;
             var isComplete = false;
 
             if (results.Count != 0)
@@ -41,7 +51,9 @@ namespace BirthdayBot.Services
             return isComplete;
         }
 
-        // データ取得(1件)
+        /// <summary>
+        /// データ取得(1件)
+        /// </summary>
         public async Task<Item> GetItemAsync(string id)
         {
             try
@@ -49,13 +61,15 @@ namespace BirthdayBot.Services
                 ItemResponse<Item> response = await this.container.ReadItemAsync<Item>(id, new PartitionKey(id));
                 return response.Resource;
             }
-            catch(CosmosException e) when (e.StatusCode == System.Net.HttpStatusCode.NotFound)
+            catch (CosmosException e) when (e.StatusCode == System.Net.HttpStatusCode.NotFound)
             {
                 return null;
             }
         }
 
-        // データ取得(クエリに基づき取得)
+        /// <summary>
+        /// データ取得(クエリに基づき取得)
+        /// </summary>
         public async Task<IEnumerable<Item>> GetItemsAsync(string queryString)
         {
             var query = this.container.GetItemQueryIterator<Item>(new QueryDefinition(queryString));
@@ -71,7 +85,9 @@ namespace BirthdayBot.Services
             return results;
         }
 
-        // データ更新
+        /// <summary>
+        /// データ更新
+        /// </summary>
         public async Task UpdateItemAsync(string id, Item item)
         {
             await this.container.UpsertItemAsync<Item>(item, new PartitionKey(id));

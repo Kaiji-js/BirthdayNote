@@ -11,24 +11,34 @@ using System.Threading.Tasks;
 
 namespace BirthdayBot
 {
+    /// <summary>
+    /// アプリの動作定義
+    /// </summary>
     public class Startup
     {
-        public Startup(IConfiguration configuration)
-        {
-            Configuration = configuration;
-        }
-
         public IConfiguration Configuration { get; }
 
-        // This method gets called by the runtime. Use this method to add services to the container.
+        /// <summary>
+        /// コンストラクタ
+        /// </summary>
+        public Startup(IConfiguration configuration)
+        {
+            this.Configuration = configuration;
+        }
+
+        /// <summary>
+        /// DI定義
+        /// </summary>
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
-            services.Configure<AppSettings>(Configuration);
-            services.AddSingleton<ICosmosDbService>(InitializeCosmosClientInstanceAsync(Configuration.GetSection("CosmosDbSettings")).GetAwaiter().GetResult());
+            services.Configure<AppSettings>(this.Configuration);
+            services.AddSingleton<ICosmosDbService>(InitializeCosmosClientInstanceAsync(this.Configuration.GetSection("CosmosDbSettings")).GetAwaiter().GetResult());
         }
 
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
+        /// <summary>
+        /// HTTPのリクエストパイプライン作成
+        /// </summary>
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
@@ -42,28 +52,36 @@ namespace BirthdayBot
 
             app.UseAuthorization();
 
-            app.UseLineValidationMiddleware(Configuration.GetSection("LineSettings")["ChannelSecret"]);
+            // リクエストがLINEプラットフォーム上から送信されたものか検証
+            app.UseLineValidationMiddleware(this.Configuration.GetSection("LineSettings")["ChannelSecret"]);
 
             app.UseEndpoints(endpoints =>
             {
+                // エンドポイントにLineBotControllerのPostメソッドを指定
                 endpoints.MapControllerRoute(name: "defaulf", pattern: "{controller=LineBot}/{action=Post}/{id?}");
             });
         }
 
+        /// <summary>
+        /// Azure CosmosDBの初期化
+        /// </summary>
         private static async Task<CosmosDbService> InitializeCosmosClientInstanceAsync(IConfigurationSection configurationSection)
         {
+            // 設定ファイルからDB名・接続文字列等を取得
             string databaseName = configurationSection.GetSection("DatabaseName").Value;
             string contairName = configurationSection.GetSection("ContainerName").Value;
             string account = configurationSection.GetSection("Account").Value;
             string key = configurationSection.GetSection("Key").Value;
 
+            // 取得した設定を元にCosmosDBサービスを立ち上げ
             CosmosClient client = new CosmosClient(account, key);
             CosmosDbService cosmosDbService = new CosmosDbService(client, databaseName, contairName);
+
+            // 指定のDB、コンテナがなければ作る
             DatabaseResponse databaseResponse = await client.CreateDatabaseIfNotExistsAsync(databaseName);
             await databaseResponse.Database.CreateContainerIfNotExistsAsync(contairName, "/id");
 
             return cosmosDbService;
-
         }
     }
 }

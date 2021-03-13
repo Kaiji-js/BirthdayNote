@@ -10,13 +10,19 @@ using System.Threading.Tasks;
 
 namespace BirthdayBot.Middleware
 {
-    // ユーザから送信されたテキストが正式にLINEプラットフォームから送信されたものか
-    // 判定するクラス(.Net Coreに適するよう修正した以外はサンプルそのまま)
+    /// <summary>
+    /// 受信したリクエストのバリデーションをするミドルウェア
+    /// ユーザから送信されたテキストが正式にLINEプラットフォームから送信されたものか判定する
+    /// (.Net Coreに適するよう修正した以外はサンプルそのまま)
+    /// </summary>
     public class LineValidationMiddleware
     {
         private readonly RequestDelegate next;
         private string channelSecret;
 
+        /// <summary>
+        /// コンストラクタ
+        /// </summary>
         public LineValidationMiddleware(RequestDelegate next, string channelSecret)
         {
             this.next = next;
@@ -38,7 +44,7 @@ namespace BirthdayBot.Middleware
 
                 var xLineSignature = headers.TryGetValue("X-Line-Signature", out StringValues lineSignatureHeader);
                 var content = await stream.ReadToEndAsync();
-                if (string.IsNullOrEmpty(lineSignatureHeader.FirstOrDefault()) || !VerifySignature(channelSecret, lineSignatureHeader.First(), content))
+                if (string.IsNullOrEmpty(lineSignatureHeader.FirstOrDefault()) || !VerifySignature(this.channelSecret, lineSignatureHeader.First(), content))
                 {
                     throw new Exception("Signature validation faild.");
                 }
@@ -46,7 +52,7 @@ namespace BirthdayBot.Middleware
                 context.Request.Body.Position = 0;
             }
 
-            await next(context);
+            await this.next(context);
         }
 
         /// <summary>
@@ -54,12 +60,11 @@ namespace BirthdayBot.Middleware
         /// Authentication is performed as follows.
         /// 1. With the channel secret as the secret key, your application retrieves the digest value in the request body created using the HMAC-SHA256 algorithm.
         /// 2. The server confirms that the signature in the request header matches the digest value which is Base64 encoded
-        /// https://developers.line.me/en/docs/messaging-api/reference/#signature-validation
+        /// https://developers.line.me/en/docs/messaging-api/reference/#signature-validation.
         /// </summary>
-        /// <param name="channelSecret">ChannelSecret</param>
-        /// <param name="xLineSignature">X-Line-Signature header</param>
-        /// <param name="requestBody">RequestBody</param>
-        /// <returns></returns>
+        /// <param name="channelSecret">ChannelSecret.</param>
+        /// <param name="xLineSignature">X-Line-Signature header.</param>
+        /// <param name="requestBody">RequestBody.</param>
         internal static bool VerifySignature(string channelSecret, string xLineSignature, string requestBody)
         {
             try
@@ -81,7 +86,7 @@ namespace BirthdayBot.Middleware
         }
 
         /// <summary>
-        /// Compares two-byte arrays in length-constant time. 
+        /// Compares two-byte arrays in length-constant time.
         /// This comparison method is used so that password hashes cannot be extracted from on-line systems using a timing attack and then attacked off-line.
         /// <remarks> http://bryanavery.co.uk/cryptography-net-avoiding-timing-attack/#comment-85　</remarks>
         /// </summary>
@@ -89,7 +94,10 @@ namespace BirthdayBot.Middleware
         {
             uint diff = (uint)a.Length ^ (uint)b.Length;
             for (int i = 0; i < a.Length && i < b.Length; i++)
+            {
                 diff |= (uint)(a[i] ^ b[i]);
+            }
+
             return diff == 0;
         }
     }

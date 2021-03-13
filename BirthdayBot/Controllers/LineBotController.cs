@@ -9,29 +9,41 @@ using System.Threading.Tasks;
 
 namespace BirthdayBot.Controllers
 {
+    /// <summary>
+    /// LineBotのコントローラー
+    /// </summary>
     [Produces("application/json")]
     [Route("api/[controller]")]
     public class LineBotController : Controller
     {
         private static LineMessagingClient lineMessaingClient;
         private readonly ICosmosDbService cosmosDbService;
-        AppSettings appSettings;
+        private AppSettings appSettings;
 
+        /// <summary>
+        /// コンストラクタ
+        /// </summary>
         public LineBotController(IOptions<AppSettings> options, ICosmosDbService cosmosDbService)
         {
-            appSettings = options.Value;
-            lineMessaingClient = new LineMessagingClient(appSettings.LineSettings.ChannelAccessToken);
+            this.appSettings = options.Value;
+            lineMessaingClient = new LineMessagingClient(this.appSettings.LineSettings.ChannelAccessToken);
             this.cosmosDbService = cosmosDbService;
         }
 
+        /// <summary>
+        /// アプリ本体の実行
+        /// </summary>
+        /// <param name="req">LINEから届いたJson形式のリクエスト本体.</param>
         [HttpPost]
         public async Task<IActionResult> Post([FromBody]JsonElement req)
         {
+            // 受け取ったリクエストをLINEのSDK上で扱えるイベントに変換
             var events = WebhookEventParser.Parse(req.ToString());
-            var app = new LineBotApp(lineMessaingClient, cosmosDbService);
+
+            // アプリ実行
+            var app = new LineBotApp(lineMessaingClient, this.cosmosDbService);
             await app.RunAsync(events);
             return new OkResult();
-
         }
     }
 }

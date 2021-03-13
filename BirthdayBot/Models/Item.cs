@@ -1,11 +1,10 @@
 ﻿using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace BirthdayBot.Models
 {
+    /// <summary>
+    /// CosmosDBとのデータ送受信に使用するテーブル定義
+    /// </summary>
     public class Item
     {
         [JsonProperty(PropertyName = "id")]
