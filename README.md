@@ -13,9 +13,9 @@
 　◆ C#(.NETCore)  
 　◆ LINE Messaging API  
 　◆ Azure  
-　　　- App Service(WebApps) → デプロイ先  
+　　　- App Service(WebApps) → アプリ本体のデプロイ先。本リポジトリ内、BirthdayBotフォルダにソースコード一式を配置  
 　　　- Azure Cosmos DB  
-　　　- Azure Functions → 定時実行ジョブとして使用(本リポジトリ内には関連ファイル無し)
+　　　- Azure Functions → 定時実行ジョブとして使用。本リポジトリ内には関連ファイル無し
   
 # 利用方法
 基本的な利用方法についてはBotの友達登録時、及び適当なテキストメッセージが  
